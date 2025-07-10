@@ -1,5 +1,6 @@
 import User from "../models/user.js";
 import signupValidation from "../validations/signupValidation.js";
+import signinValidation from "../validations/signinValidation.js";
 import {
   hashPassword,
   comparePassword,
@@ -10,10 +11,13 @@ import {
 const signup = async (req, res) => {
   try {
     await signupValidation.validate(req.body);
-    const { name, email, password } = req.body;
+    const { name, email, password, confirmPassword } = req.body;
     const isExist = await User.findOne({ email });
     if (isExist) {
       return sendResponse(res, 409, "user already exist");
+    }
+    if (password !== confirmPassword) {
+      return sendResponse(res, 400, "Passwords do not match");
     }
     const hashed = await hashPassword(password);
     const user = new User({
@@ -24,8 +28,8 @@ const signup = async (req, res) => {
     await user.save();
     return sendResponse(res, 201, "user created successfully");
   } catch (error) {
-    if(error.name ==="validationError"){
-       const errors = error.inner.map((err) => ({
+    if (error.name === "validationError") {
+      const errors = error.inner.map((err) => ({
         path: err.path,
         message: err.message,
       }));
@@ -38,10 +42,9 @@ const signup = async (req, res) => {
 
 const signin = async (req, res) => {
   try {
+    await signinValidation.validate(req.body);
     const { email, password } = req.body;
-    if (!email || !password) {
-      return sendResponse(res, 400, "Email and password are required");
-    }
+
     const isExist = await User.findOne({ email });
     if (!isExist) {
       return sendResponse(res, 404, "user not found");
@@ -54,6 +57,7 @@ const signin = async (req, res) => {
     return res.status(200).json({
       token,
     });
+    res.cookies
   } catch (error) {
     console.log("signin error", error);
     return sendResponse(res, 500, "Internal server error");
