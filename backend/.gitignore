@@ -1,0 +1,32 @@
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# dotenv environment variables file
+.env
+
+# Build directory
+dist/
+build/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+
+# VS Code settings
+.vscode/
+
+# Logs and temp files
+tmp/
+temp/
+
+# Optional lock files
+package-lock.json
+
