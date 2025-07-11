@@ -54,14 +54,38 @@ const signin = async (req, res) => {
       return sendResponse(res, 401, "invalid credentials");
     }
     const token = tokenGen(isExist, process.env.KEY);
-    return res.status(200).json({
-      token,
-    });
-    res.cookies
+    return res
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      })
+      .status(200)
+      .json({
+        token,
+      });
   } catch (error) {
     console.log("signin error", error);
     return sendResponse(res, 500, "Internal server error");
   }
 };
 
-export { signin, signup };
+const mine = async (req, res) => {
+  try {
+    console.log("Decoded token:", req.user);
+    const user = await User.findById(req.user.id).select("email role");
+    if (!user) {
+      return sendResponse(res, 404, "User not found");
+    }
+    return res.status(200).json({
+      user: {
+        id: user._id,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Error in /me route:", error);
+    return sendResponse(res, 500, "Internal server error");
+  }
+};
+export { signin, signup, mine };
